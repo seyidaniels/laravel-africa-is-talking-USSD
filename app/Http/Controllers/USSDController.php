@@ -22,6 +22,8 @@ class USSDController extends Controller
         $phoneNumber = $request["phoneNumber"];
         $text        = $request["text"];
 
+        // dd($text);
+
         $request->validate([
             'phoneNumber' => 'required'
         ]);
