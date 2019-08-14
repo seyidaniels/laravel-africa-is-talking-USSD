@@ -20,6 +20,7 @@ class MerchantController extends Controller
 
         switch ($this->index) {
             case 1: $response = $this->welcome();
+            break;
             case 2: $response = "CON Please enter your mobile number";
         }
 
