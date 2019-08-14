@@ -3,22 +3,50 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\MerchantController;
 
 class USSDController extends Controller
 {
+    private $merchant;
+    private $credpalAPI;
+
+    public function __construct(MerchantController $merchant, ApiContoller $credpalAPI)
+    {
+        $this->merchant = $merchant;
+        $this->credpalAPI = $credpalAPI;
+    }
     public function index (Request $request) {
         $sessionId   = $request["sessionId"];
         $serviceCode = $request["serviceCode"];
         $phoneNumber = $request["phoneNumber"];
         $text        = $request["text"];
 
-        header('Content-type: text/plain');
-        echo "CON we just getting started";
 
+        $request->validate([
+            'phoneNumber' => 'required'
+        ]);
+
+        // Verifies that user is a merchant
+        $user = $this->credpalAPI->getUser($phoneNumber);
+
+        if ($user && $user->type == "merchant") {
+
+            $response = $this->merchant->index($user, $text);
+
+        }else {
+
+            $response = "END You are not allowed to perform this action";
+            
+        }
+
+        return $this->returnResponse($response);
     }
 
-
-    protected function getUser ($phoneNumber) {
-
+    public function returnResponse ($response) {
+        $substring = substr( $response, 0, 3 );
+        if ($substring == 'CON' || $substring == "END") {
+            header('Content-type: text/plain');
+            echo $response;
+        }
     }
 }
