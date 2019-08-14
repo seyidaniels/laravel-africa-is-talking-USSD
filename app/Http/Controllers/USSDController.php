@@ -3,20 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\MerchantController;
+//use App\Http\Controllers\MerchantController;
 use Exception;
+use Session;
 
 class USSDController extends Controller
 {
-    private $merchant;
     private $credpalAPI;
 
-    public function __construct(MerchantController $merchant, ApiContoller $credpalAPI)
+    public function __construct( ApiContoller $credpalAPI)
     {
-        $this->merchant = $merchant;
         $this->credpalAPI = $credpalAPI;
     }
     public function index (Request $request) {
+
         $sessionId   = $request["sessionId"];
         $serviceCode = $request["serviceCode"];
         $phoneNumber = $request["phoneNumber"];
@@ -31,11 +31,14 @@ class USSDController extends Controller
 
         try {
                 // Verifies that user is a merchant
-                $user = $this->credpalAPI->getUser($phoneNumber);
+                $user = Session::has('user') ? Session::get('user') : $this->credpalAPI->getUser($phoneNumber);
 
                 if ($user && $user->type == "merchant") {
 
-                    $response = $this->merchant->index($user, $text);
+                    $merchant = new MerchantController($sessionId, $user, $text);
+
+
+                    $response = $merchant->index($user, $text);
 
                 }else {
 
@@ -53,7 +56,7 @@ class USSDController extends Controller
     }
 
     public function returnResponse ($response) {
-        $substring = substr( $response, 0, 3 );
+        $substring = substr($response, 0, 3 );
         if ($substring == 'CON' || $substring == "END") {
             header('Content-type: text/plain');
             echo $response;
