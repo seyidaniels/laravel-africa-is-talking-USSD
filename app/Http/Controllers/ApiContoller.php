@@ -19,6 +19,10 @@ class ApiContoller extends Controller
         
     }
 
+    public function sendOtp ($phone) {
+        $response = $this->postRequest();
+    }
+
     public function getRequest($url, $data = [])
 {
     $curl = curl_init();

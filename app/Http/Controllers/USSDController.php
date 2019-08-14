@@ -16,34 +16,32 @@ class USSDController extends Controller
         $this->credpalAPI = $credpalAPI;
     }
     public function index (Request $request) {
-
         $sessionId   = $request["sessionId"];
         $serviceCode = $request["serviceCode"];
         $phoneNumber = $request["phoneNumber"];
         $text        = $request["text"];
 
         // dd($text);
-
         $request->validate([
             'phoneNumber' => 'required'
         ]);
 
         // Gets correct phone number
         $phoneNumber = $this->formatNumber ($phoneNumber);
-
         try {
                 // Verifies that user is a merchant
-                $user = Session::has('user') ? Session::get('user') : $this->credpalAPI->getUser($phoneNumber);
+                $user = Session::has('user') ? Session::get('user')
+                 : 
+                $this->credpalAPI->getUser($phoneNumber);
 
                 if ($user && $user->type == "merchant") {
 
                     $merchant = new MerchantController($sessionId, $user, $text);
 
-
                     $response = $merchant->index($user, $text);
 
                 }else {
-
+                    
                     $response = "END You are not allowed to perform this action";
                     
                 }

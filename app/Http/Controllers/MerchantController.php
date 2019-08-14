@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\ApiContoller;
+
+use Session;
 
 class MerchantController extends Controller
 {
@@ -19,8 +22,6 @@ class MerchantController extends Controller
             $this->index = count ($this->data);
             $this->response = $text;
         }
-
-        
     }
     public function index () {
         switch ($this->index) {
@@ -28,6 +29,9 @@ class MerchantController extends Controller
             break;
             case 1: $response = $this->firstQuestion();
             break;
+            case 2: $response = $this->getsAndVerifesPhone();
+            break;
+            default: $response = "Ooops! man whatsup";
         }
 
         return $response;
@@ -44,11 +48,49 @@ class MerchantController extends Controller
         // Checks now to get what user enters
         $response = $this->response;
         if ($response == "1") {
-            return "CON Please enter your mobile number";
+            return "CON Please Enter Customer Mobile number";
         }else {
             return "END Invalid Statement";
         }
     }
+
+    public function getsAndVerifesPhone () {
+
+        $phoneNumber = $this->data[1];
+
+        if ($this->isValidNUmber($phoneNumber)) {
+
+            // Checks if User exists with the phone number entered
+            $credpalAPI = new ApiContoller();
+
+            $user = $credpalAPI->getUser($phoneNumber);
+
+
+            if ($user && $user->type == "user") {
+
+                Session::put ([
+                    'user' => $user
+                ]);
+
+                
+
+                return "CON an Otp was sent to ".$user->name . ".\nPlease enter the OTP below to continue";
+
+            }
+
+            return "END Customer not found";
+        }
+
+        return "END Invalid Phone Number field";
+        
+    }
+
+
+    function isValidNUmber ($value) {
+        return preg_match('/^[0-9]{11}+$/', $value);
+    }
+
+
 
 
 }
