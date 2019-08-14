@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\MerchantController;
+use Exception;
 
 class USSDController extends Controller
 {
@@ -21,25 +22,34 @@ class USSDController extends Controller
         $phoneNumber = $request["phoneNumber"];
         $text        = $request["text"];
 
-
         $request->validate([
             'phoneNumber' => 'required'
         ]);
 
-        // Verifies that user is a merchant
-        $user = $this->credpalAPI->getUser($phoneNumber);
+        
 
-        if ($user && $user->type == "merchant") {
 
-            $response = $this->merchant->index($user, $text);
+        try {
+                // Verifies that user is a merchant
+                $user = $this->credpalAPI->getUser($phoneNumber);
 
-        }else {
+                if ($user && $user->type == "merchant") {
 
-            $response = "END You are not allowed to perform this action";
+                    $response = $this->merchant->index($user, $text);
+
+                }else {
+
+                    $response = "END You are not allowed to perform this action";
+                    
+                }
             
+        }catch (Exception $e) {
+            $response = "Oooops! An error occured, Try again later";
         }
 
         return $this->returnResponse($response);
+
+
     }
 
     public function returnResponse ($response) {
