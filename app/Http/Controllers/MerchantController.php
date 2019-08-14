@@ -8,7 +8,6 @@ class MerchantController extends Controller
 {
     private $index;
     private $data;
-    private $merchant;
 
     public function __construct($sessionId, $merchant, $text) {
         session(['session_id' => $sessionId]);
@@ -19,9 +18,10 @@ class MerchantController extends Controller
     public function index () {
 
         switch ($this->index) {
-            case 1: $response = $this->welcome();
+            case 0: $response = $this->welcome();
             break;
-            case 2: $response = "CON Please enter your mobile number";
+            case 1: $response = "CON Please enter your mobile number";
+            break;
         }
 
         return $response;
