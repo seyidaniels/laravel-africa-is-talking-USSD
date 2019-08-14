@@ -26,8 +26,8 @@ class USSDController extends Controller
             'phoneNumber' => 'required'
         ]);
 
-        
-
+        // Gets correct phone number
+        $phoneNumber = $this->formatNumber ($phoneNumber);
 
         try {
                 // Verifies that user is a merchant
@@ -58,5 +58,13 @@ class USSDController extends Controller
             header('Content-type: text/plain');
             echo $response;
         }
+    }
+
+    public function formatNumber ($phone) {
+        $substring = substr($phone, 0, 4);
+        if ($substring == "+234") {
+            $phone = "0".substr($phone, 4);
+        }
+        return $phone;
     }
 }
