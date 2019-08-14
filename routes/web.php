@@ -11,4 +11,4 @@
 |
 */
 
-Route::get('/', 'USSDController@index');
+Route::post('/', 'USSDController@index');
