@@ -129,11 +129,14 @@ class MerchantController extends Controller
         $response = $credpalAPI->makePurchase([
             'order_amount' => $amount,
             'user_id' => $user->id,
-            'merchant_id' => 1,
+            'merchant_id' => $merchant->id,
             'order_description' => "USSD transaction",
             'order_tenure' => 1,
             'order_amount_to_borrow' => $amount
         ]);
+
+        Session::forget('user');
+        Session::forget('merchant');
 
 
         return $response->success ? "END tranaction completed successfully, Check email for receipt" : "END     ".$response->message;
