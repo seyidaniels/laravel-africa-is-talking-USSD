@@ -7,15 +7,21 @@ use App\Http\Controllers\ApiContoller;
 
 use Session;
 
+
+
 class MerchantController extends Controller
 {
     private $index = 0;
     private $data;
     private $response;
+    private $user;
+    private $credpalAPI;
 
     public function __construct($sessionId, $merchant, $text) {
         session(['session_id' => $sessionId]);
         session(['merchant' => $merchant]);
+
+        $this->credpalAPI = new ApiContoller();
 
         if($text != ""){
             $this->data = explode("*", $text);
@@ -32,6 +38,8 @@ class MerchantController extends Controller
             case 2: $response = $this->getsAndVerifesPhone();
             break;
             case 3: $response = $this->validatesOtp();
+            break;
+            case 4: $response = $this->enterAmount();
             break;
             default: $response = "Ooops! man whatsup";
         }
@@ -72,6 +80,8 @@ class MerchantController extends Controller
 
             if ($user && $user->type == "user") {
 
+                if ($user->credit_limit== null) return "END ".$user->name ." does not have a credit limit";
+
                 Session::put ([
                     'user' => $user
                 ]); 
@@ -102,7 +112,32 @@ class MerchantController extends Controller
             'otp' => $otp
         ]);
 
-       return $response->success ? "CON Kindly enter purchase amount" : "END Invalid OTP";
+       return $response->success ? "CON Kindly enter purchase amount. Limit is ".$user->credit_limit : "END Invalid OTP";
+
+    }
+
+    public function enterAmount () {
+        $amount = (int) $this->data[3];
+        $user = Session::get('user');
+        $merchant = Session::get('merchant');
+
+        if ($amount < $user->credit_limit) return "END Purchase amount cant exceed credit limit";
+
+        $credpalAPI = new ApiContoller();
+
+
+        $response = $credpalAPI->makePurchase([
+            'order_amount' => $amount,
+            'user_id' => $user->id,
+            'merchant_id' => 1,
+            'order_description' => "USSD transaction",
+            'order_tenure' => 1,
+            'order_amount_to_borrow' => $amount
+        ]);
+
+
+        return $response->success ? "END tranaction completed successfully, Check email for receipt" : "END     ".$response->message;
+
 
     }
 

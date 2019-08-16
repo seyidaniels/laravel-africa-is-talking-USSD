@@ -47,6 +47,7 @@ class USSDController extends Controller
                 }
             
         }catch (Exception $e) {
+            dd($e);
             $response = "END Oooops! An error occured, Try again later";
         }
 

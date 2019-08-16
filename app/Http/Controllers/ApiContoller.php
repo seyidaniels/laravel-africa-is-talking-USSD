@@ -30,6 +30,10 @@ class ApiContoller extends Controller
         return $this->postRequest("otp/confirm", $data);
     }
 
+    public function makePurchase ($data) {
+        return $this->postRequest("order/store", $data);
+    }
+
     public function getRequest($url, $data = [])
 {
     $curl = curl_init();
