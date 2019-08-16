@@ -47,8 +47,10 @@ class USSDController extends Controller
                 }
             
         }catch (Exception $e) {
+            Session::forget('user');
+            Session::forget('merchant');
             dd($e);
-            $response = "END Oooops! An error occured, Try again later";
+            $response = "END Oooops! An error occured, Try again later ".$e->getMessage();
         }
 
         return $this->returnResponse($response);

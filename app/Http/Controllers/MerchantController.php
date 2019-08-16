@@ -121,7 +121,7 @@ class MerchantController extends Controller
         $user = Session::get('user');
         $merchant = Session::get('merchant');
 
-        if ($amount < $user->credit_limit) return "END Purchase amount cant exceed credit limit";
+        if ($amount > $user->credit_limit) return "END Purchase amount cant exceed credit limit";
 
         $credpalAPI = new ApiContoller();
 
