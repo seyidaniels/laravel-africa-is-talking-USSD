@@ -19,8 +19,15 @@ class ApiContoller extends Controller
         
     }
 
-    public function sendOtp ($phone) {
-        $response = $this->postRequest();
+    public function sendOtp ($user_id) {
+        $response = $this->postRequest("otp/request", [
+            'user_id' => $user_id
+        ]);
+        return $response;
+    }
+
+    public function confirmOtp($data) {
+        return $this->postRequest("otp/confirm", $data);
     }
 
     public function getRequest($url, $data = [])
@@ -36,6 +43,7 @@ class ApiContoller extends Controller
     ));
 
     $response = curl_exec($curl);
+
     $err = curl_error($curl);
 
     curl_close($curl);
@@ -47,4 +55,33 @@ class ApiContoller extends Controller
 
     }
 }
+
+    public function postRequest ($url, $data) {
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL =>  config('credpal.API_URL').$url,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => json_encode($data),
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_HTTPHEADER => array(
+            "Authorization: Bearer CP_YUWW6hfKr4sfK6KvGeArDaQGTJRKdYwKMYjUO61BvHBURK6o9yHN45YSrIZh8JYnZEl2ct1xiR2S6r706pwJhFXXo0Ypb7niSGEUR0XNoQdN0XaskbU0J6h1bZVVdSsJ",
+             "Content-Type: application/json",
+        ),
+        ));
+
+$response = curl_exec($curl);
+$err = curl_error($curl);
+
+curl_close($curl);
+
+if ($err) {
+  return "cURL Error #:" . $err;
+} else {
+  return json_decode($response);
+}
+        
+    }
+
 }

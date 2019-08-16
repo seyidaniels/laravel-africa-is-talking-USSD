@@ -15,7 +15,7 @@ class MerchantController extends Controller
 
     public function __construct($sessionId, $merchant, $text) {
         session(['session_id' => $sessionId]);
-        session(['user' => $merchant]);
+        session(['merchant' => $merchant]);
 
         if($text != ""){
             $this->data = explode("*", $text);
@@ -30,6 +30,8 @@ class MerchantController extends Controller
             case 1: $response = $this->firstQuestion();
             break;
             case 2: $response = $this->getsAndVerifesPhone();
+            break;
+            case 3: $response = $this->validatesOtp();
             break;
             default: $response = "Ooops! man whatsup";
         }
@@ -56,7 +58,9 @@ class MerchantController extends Controller
 
     public function getsAndVerifesPhone () {
 
+
         $phoneNumber = $this->data[1];
+
 
         if ($this->isValidNUmber($phoneNumber)) {
 
@@ -70,12 +74,11 @@ class MerchantController extends Controller
 
                 Session::put ([
                     'user' => $user
-                ]);
+                ]); 
 
-                
+                $response = $credpalAPI->sendOtp($user->id);
 
-                return "CON an Otp was sent to ".$user->name . ".\nPlease enter the OTP below to continue";
-
+                return $response->success ? "CON Please enter the OTP that was sent to ".$user->name : "END ".$response->message;
             }
 
             return "END Customer not found";
@@ -83,6 +86,24 @@ class MerchantController extends Controller
 
         return "END Invalid Phone Number field";
         
+    }
+
+    public function validatesOtp () {
+        $otp = (int) $this->data[2];
+
+        if (strlen($otp) != 4) return "END Invalid OTP";
+
+        $user = Session::get('user');
+
+        $credpalAPI = new ApiContoller();
+
+        $response = $credpalAPI->confirmOtp([
+            'user_id' => $user->id,
+            'otp' => $otp
+        ]);
+
+       return $response->success ? "CON Kindly enter purchase amount" : "END Invalid OTP";
+
     }
 
 

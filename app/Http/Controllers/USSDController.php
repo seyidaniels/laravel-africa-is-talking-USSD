@@ -21,18 +21,18 @@ class USSDController extends Controller
         $phoneNumber = $request["phoneNumber"];
         $text        = $request["text"];
 
+        $response = "";
+
         // dd($text);
         $request->validate([
             'phoneNumber' => 'required'
         ]);
-
         // Gets correct phone number
         $phoneNumber = $this->formatNumber ($phoneNumber);
         try {
                 // Verifies that user is a merchant
-                $user = Session::has('user') ? Session::get('user')
-                 : 
-                $this->credpalAPI->getUser($phoneNumber);
+
+                $user = Session::has('merchant') ? Session::get('merchant') : $this->credpalAPI->getUser($phoneNumber);
 
                 if ($user && $user->type == "merchant") {
 
@@ -47,7 +47,7 @@ class USSDController extends Controller
                 }
             
         }catch (Exception $e) {
-            $response = "Oooops! An error occured, Try again later";
+            $response = "END Oooops! An error occured, Try again later";
         }
 
         return $this->returnResponse($response);
