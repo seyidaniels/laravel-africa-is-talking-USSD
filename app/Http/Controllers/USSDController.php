@@ -38,6 +38,7 @@ class USSDController extends Controller
 
                     $merchant = new MerchantController($sessionId, $user, $text);
 
+
                     $response = $merchant->index($user, $text);
 
                 }else {
@@ -49,7 +50,6 @@ class USSDController extends Controller
         }catch (Exception $e) {
             Session::forget('user');
             Session::forget('merchant');
-            dd($e);
             $response = "END Oooops! An error occured, Try again later ".$e->getMessage();
         }
 
