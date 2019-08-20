@@ -31,6 +31,7 @@ class ApiContoller extends Controller
     }
 
     public function makePurchase ($data) {
+
         return $this->postRequest("order/store", $data);
     }
 

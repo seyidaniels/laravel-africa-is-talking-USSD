@@ -78,14 +78,15 @@ class MerchantController extends Controller
             $user = $credpalAPI->getUser($phoneNumber);
 
 
+
             if ($user && $user->type == "user") {
+
+            
+            
+                session(['user' => $user]);
 
 
                 if ($user->credit_limit== null) return "END ".$user->name ." does not have a credit limit";
-
-                Session::put (
-                    'user', $user
-                ); 
 
 
                 $response = $credpalAPI->sendOtp($user->id);
@@ -106,8 +107,6 @@ class MerchantController extends Controller
         if (strlen($otp) != 4) return "END Invalid OTP";
 
         $user = Session::get('user');
-
-        return "END ".$user->name;
 
         $credpalAPI = new ApiContoller();
 

@@ -59,7 +59,7 @@ class USSDController extends Controller
     }
 
     public function returnResponse ($response) {
-        $substring = substr($response, 0, 3 );
+        $substring = substr($response, 0, 3);
         if ($substring == 'CON' || $substring == "END") {
             header('Content-type: text/plain');
             echo $response;
