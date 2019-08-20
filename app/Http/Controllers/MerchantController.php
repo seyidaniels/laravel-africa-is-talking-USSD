@@ -86,6 +86,8 @@ class MerchantController extends Controller
                     'user' => $user
                 ]); 
 
+                session(['user' => $user]);
+
                 $response = $credpalAPI->sendOtp($user->id);
 
                 return $response->success ? "CON Please enter the OTP that was sent to ".$user->name : "END ".$response->message;
@@ -104,6 +106,8 @@ class MerchantController extends Controller
         if (strlen($otp) != 4) return "END Invalid OTP";
 
         $user = Session::get('user');
+
+        return "END ".$user->name;
 
         $credpalAPI = new ApiContoller();
 
