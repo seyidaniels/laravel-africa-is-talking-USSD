@@ -17,9 +17,10 @@ class MerchantController extends Controller
     private $user;
     private $credpalAPI;
 
-    public function __construct($sessionId, $merchant, $text) {
+    public function __construct($sessionId, $merchant, $text, $request) {
         session(['session_id' => $sessionId]);
         session(['merchant' => $merchant]);
+        $this->request = $request;
 
         $this->credpalAPI = new ApiContoller();
 
@@ -78,13 +79,9 @@ class MerchantController extends Controller
             $user = $credpalAPI->getUser($phoneNumber);
 
 
+            $this->request->session()->put('user', $user);
 
             if ($user && $user->type == "user") {
-
-            
-            
-                session(['user' => $user]);
-
 
                 if ($user->credit_limit== null) return "END ".$user->name ." does not have a credit limit";
 
@@ -104,11 +101,13 @@ class MerchantController extends Controller
     public function validatesOtp () {
         $otp = (int) $this->data[2];
 
+
         if (strlen($otp) != 4) return "END Invalid OTP";
 
-        $user = Session::get('user');
-
         $credpalAPI = new ApiContoller();
+
+
+        $user = $credpalAPI->getUser($this->data[1]);
 
         $response = $credpalAPI->confirmOtp([
             'user_id' => $user->id,
@@ -120,13 +119,14 @@ class MerchantController extends Controller
     }
 
     public function enterAmount () {
+        $credpalAPI = new ApiContoller();
         $amount = (int) $this->data[3];
-        $user = Session::get('user');
+        $user = $credpalAPI->getUser($this->data[1]);
         $merchant = Session::get('merchant');
 
         if ($amount > $user->credit_limit) return "END Purchase amount cant exceed credit limit";
 
-        $credpalAPI = new ApiContoller();
+        
 
 
         $response = $credpalAPI->makePurchase([

@@ -36,8 +36,7 @@ class USSDController extends Controller
 
                 if ($user && $user->type == "merchant") {
 
-                    $merchant = new MerchantController($sessionId, $user, $text);
-
+                    $merchant = new MerchantController($sessionId, $user, $text, $request);
 
                     $response = $merchant->index($user, $text);
 
