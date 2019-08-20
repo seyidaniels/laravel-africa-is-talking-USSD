@@ -30,7 +30,7 @@ class USSDController extends Controller
         // Gets correct phone number
         $phoneNumber = $this->formatNumber ($phoneNumber);
         try {
-            
+
                 // Verifies that user is a merchant
                 $user = Session::has('merchant') ? Session::get('merchant') : $this->credpalAPI->getUser($phoneNumber);
 
@@ -48,8 +48,8 @@ class USSDController extends Controller
                 }
             
         }catch (Exception $e) {
-            Session::forget('user');
-            Session::forget('merchant');
+            // Session::forget('user');
+            // Session::forget('merchant');
             $response = "END Oooops! An error occured, Try again later ".$e->getMessage();
         }
 
