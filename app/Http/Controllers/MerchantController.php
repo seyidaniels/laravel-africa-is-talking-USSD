@@ -78,18 +78,15 @@ class MerchantController extends Controller
             $user = $credpalAPI->getUser($phoneNumber);
 
 
-            return "END ". $user->name;
-
-
             if ($user && $user->type == "user") {
+
 
                 if ($user->credit_limit== null) return "END ".$user->name ." does not have a credit limit";
 
-                Session::put ([
-                    'user' => $user
-                ]); 
+                Session::put (
+                    'user', $user
+                ); 
 
-                session(['user' => $user]);
 
                 $response = $credpalAPI->sendOtp($user->id);
 
