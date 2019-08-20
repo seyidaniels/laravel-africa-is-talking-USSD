@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiContoller;
-
+use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use Session;
-
-
+use stdClass;
 
 class MerchantController extends Controller
 {
@@ -38,15 +37,22 @@ class MerchantController extends Controller
             break;
             case 2: $response = $this->getsAndVerifesPhone();
             break;
-            case 3: $response = $this->validatesOtp();
+            // case 3: $response = $this->otpValidation();
+            // break;
+            case 3: $response = $this->enterAmount();
             break;
-            case 4: $response = $this->enterAmount();
+            case 4: $response = $this->proceedWithTransaction();
+            break;
+            case 5: $response = $this->confirmsTransaction();
             break;
             default: $response = "Ooops! man whatsup";
         }
 
         return $response;
     }
+
+
+
 
     public function welcome () {
         $response  = "CON Welcome to Credpal , what would you want to  do? \n";
@@ -66,46 +72,33 @@ class MerchantController extends Controller
     }
 
     public function getsAndVerifesPhone () {
-
-
         $phoneNumber = $this->data[1];
 
-
         if ($this->isValidNUmber($phoneNumber)) {
-
-            // Checks if User exists with the phone number entered
-            $credpalAPI = new ApiContoller();
-
-            $user = $credpalAPI->getUser($phoneNumber);
-
-
-            $this->request->session()->put('user', $user);
-
-            if ($user && $user->type == "user") {
-
-                if ($user->credit_limit== null) return "END ".$user->name ." does not have a credit limit";
-
-
-                $response = $credpalAPI->sendOtp($user->id);
-
-                return $response->success ? "CON Please enter the OTP that was sent to ".$user->name : "END ".$response->message;
-            }
-
-            return "END Customer not found";
+            $this->sendsOtp();
         }
 
         return "END Invalid Phone Number field";
         
     }
 
-    public function validatesOtp () {
-        $otp = (int) $this->data[2];
 
+    // public function otpValidation (){
+    //     $otp = $this->data[2];
 
+    //     if ($this->isValidOTP($otp)) {
+    //         return "CON Kindly enter purchase amount.";
+    //     }
+
+    //     return "END Invalid OTP";
+        
+
+    // }
+
+    public function isValidOTP ($otp) {
         if (strlen($otp) != 4) return "END Invalid OTP";
 
         $credpalAPI = new ApiContoller();
-
 
         $user = $credpalAPI->getUser($this->data[1]);
 
@@ -114,38 +107,129 @@ class MerchantController extends Controller
             'otp' => $otp
         ]);
 
-       return $response->success ? "CON Kindly enter purchase amount. Limit is ".$user->credit_limit : "END Invalid OTP";
-
+        return $response->success ? true: false;
     }
 
     public function enterAmount () {
         $credpalAPI = new ApiContoller();
-        $amount = (int) $this->data[3];
+        $amount = (int) $this->data[2];
         $user = $credpalAPI->getUser($this->data[1]);
         $merchant = Session::get('merchant');
+        $customerMessage = "";
 
-        if ($amount > $user->credit_limit) return "END Purchase amount cant exceed credit limit";
+        if ($amount > $user->credit_limit)  {
+            $difference = $amount - $user->credit_limit;
+
+            $response = "CON Customer is mandated to physically pay you ₦".$difference . " to you while we pay you ₦".$user->credit_limit."\n
+            Press 1 to confirm!
+            ";
+
+            // send Otp to finalise Transaction and also tell Customer aboutn what he needs to do
+            $customerMessage =  "Dear ".$user->name. ", you are required to pay ₦". $this->repaymentAmount($difference) . " over a period of 3 months. An OTP would be sent to you when merchant confirms this transaction"; 
+        }else {
+            $response = "CON Customer is not mandated to physically pay you, we would be paying fully for this purchase./service.\n
+            Press 1 to confirm!
+            ";
+
+            $customerMessage =  "Dear ".$user->name. ", you are required to pay ₦". $this->repaymentAmount($amount) . " over a period of 3 months. An OTP would be sent to you when merchant confirms this transaction"; 
+        }
+
 
         
+        // Sends Text Message
 
 
-        $response = $credpalAPI->makePurchase([
-            'order_amount' => $amount,
-            'user_id' => $user->id,
-            'merchant_id' => $merchant->id,
-            'order_description' => "USSD transaction",
-            'order_tenure' => 1,
-            'order_amount_to_borrow' => $amount
-        ]);
+        return $response;
 
-        Session::forget('user');
-        Session::forget('merchant');
+        // recordPayment ()
+
+        // $response = $credpalAPI->makePurchase([
+        //     'order_amount' => $amount,
+        //     'user_id' => $user->id,
+        //     'merchant_id' => $merchant->id,
+        //     'order_description' => "USSD transaction",
+        //     'order_tenure' => 1,
+        //     'order_amount_to_borrow' => $amount
+        // ]);
+
+        // Session::forget('user');
+        // Session::forget('merchant');
 
 
-        return $response->success ? "END tranaction completed successfully, Check email for receipt" : "END     ".$response->message;
+        // return $response->success ? "END tranaction completed successfully, Check email for receipt" : "END     ".$response->message;
 
 
     }
+
+
+    public function proceedWithTransaction () {
+        $confirmation = (int) $this->data[3];
+
+        if ($confirmation == 1) {
+            // Sends OTP to the Customer
+           return  $this->sendsOtp();
+
+        }
+        return "END Invalid Input";
+        
+    }
+
+    public function confirmsTransaction () {
+        $otp = (int) $this->data[4];
+        if ($this->isValidOTP($otp)) {
+            $credpalAPI = new ApiContoller();
+            $amount = (int) $this->data[3];
+            $user = $credpalAPI->getUser($this->data[1]);
+            $merchant = Session::get('merchant');
+
+
+            $response = $credpalAPI->makePurchase([
+                'order_amount' => $amount,
+                'user_id' => $user->id,
+                'merchant_id' => $merchant->id,
+                'order_description' => "USSD transaction",
+                'order_tenure' => 3,
+                'order_amount_to_borrow' => $amount
+            ]);
+
+            Session::forget('user');
+            Session::forget('merchant');
+
+
+            return $response->success ? "END tranaction completed successfully, Check email for receipt" : "END     ".$response->message;
+        }
+
+        return "END Invalid OTP";
+            
+    }
+
+    public function sendsOtp() {
+        $phoneNumber = $this->data[1];
+        // Checks if User exists with the phone number entered
+        $credpalAPI = new ApiContoller();
+
+        $user = $credpalAPI->getUser($phoneNumber);
+
+        if ($user && $user->type == "user") {
+
+            if ($user->credit_limit== null) return "END ".$user->name ." does not have a credit limit";
+
+
+            $response = $credpalAPI->sendOtp($user->id);
+
+            return $response->success ? "CON Please enter the OTP that was sent to ".$user->name : "END ".$response->message;
+        }
+
+        return "END Customer not found";
+    }
+
+
+
+
+    protected function repaymentAmount ($amount){
+        return 0.07 * $amount + $amount;
+    }
+
 
 
     function isValidNUmber ($value) {
