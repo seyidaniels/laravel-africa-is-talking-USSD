@@ -75,7 +75,7 @@ class MerchantController extends Controller
         $phoneNumber = $this->data[1];
 
         if ($this->isValidNUmber($phoneNumber)) {
-            $this->sendsOtp();
+            return "CON Please enter Order Amount";
         }
 
         return "END Invalid Phone Number field";
