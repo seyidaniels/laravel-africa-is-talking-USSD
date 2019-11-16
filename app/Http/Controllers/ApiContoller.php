@@ -43,7 +43,7 @@ class ApiContoller extends Controller
     CURLOPT_CUSTOMREQUEST => "GET",
     CURLOPT_RETURNTRANSFER => 1,
     CURLOPT_HTTPHEADER => array(
-        "Authorization: Bearer CP_YUWW6hfKr4sfK6KvGeArDaQGTJRKdYwKMYjUO61BvHBURK6o9yHN45YSrIZh8JYnZEl2ct1xiR2S6r706pwJhFXXo0Ypb7niSGEUR0XNoQdN0XaskbU0J6h1bZVVdSsJ",
+        "Authorization: Bearer ".config("credpal.secret_key"),
     ),
     ));
 
